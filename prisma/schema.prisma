@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id                Int                 @unique @default(autoincrement())
+  email             String              @unique
+  name              String
+  password          String
+  role              role                @relation(fields: [roleId], references: [id])
+  user_organization user_organization[]
+  roleId            Int
+  post              post[]
+  permissions   user_permission[]
+}
+
+model organization {
+  id                Int                 @unique @default(autoincrement())
+  name              String              @unique
+  user_organization user_organization[]
+  permission        permission[]
+}
+
+// user can be member of more than one organization, one organization can have many members 
+model user_organization {
+  id             Int          @unique @default(autoincrement())
+  user           user         @relation(fields: [userId], references: [id])
+  userId         Int
+  organization   organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
+}
+
+// resources
+model post {
+  id          Int    @unique @default(autoincrement())
+  title       String
+  description String
+  author      user   @relation(fields: [userId], references: [id])
+  userId      Int
+}
+
+// action
+model action {
+  id         Int          @unique @default(autoincrement())
+  name       ACTION
+  permission permission[]
+}
+
+enum ACTION {
+  CREATE
+  DELETE
+  UPDATE
+  READ
+}
+
+model permission {
+  id              Int               @unique @default(autoincrement())
+  organization    organization      @relation(fields: [organizationId], references: [id])
+  organizationId  Int
+  action          action            @relation(fields: [actionId], references: [id])
+  resource        RESOURCE
+  actionId        Int
+  permission_role permission_role[]
+  user_permission user_permission[]
+}
+
+model user_permission {
+  id           Int        @unique @default(autoincrement())
+  permission   permission @relation(fields: [permissionId], references: [id])
+  permissionId Int
+  user         user       @relation(fields: [userId], references: [id])
+  userId       Int
+}
+
+enum RESOURCE {
+  POST
+}
+
+model permission_role {
+  id           Int        @unique @default(autoincrement())
+  role         role       @relation(fields: [roleId], references: [id])
+  roleId       Int
+  permission   permission @relation(fields: [permissionId], references: [id])
+  permissionId Int
+}
+
+model role {
+  id              Int               @unique @default(autoincrement())
+  name            ROLE
+  permission_role permission_role[]
+  user            user[]
+}
+
+enum ROLE {
+  ADMIN
+  USER
+}
