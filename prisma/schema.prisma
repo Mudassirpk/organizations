@@ -22,7 +22,7 @@ model user {
   user_organization user_organization[]
   roleId            Int
   post              post[]
-  permissions   user_permission[]
+  permissions       user_permission[]
 }
 
 model organization {
@@ -73,6 +73,8 @@ model permission {
   actionId        Int
   permission_role permission_role[]
   user_permission user_permission[]
+
+  @@unique([resource, actionId])
 }
 
 model user_permission {
