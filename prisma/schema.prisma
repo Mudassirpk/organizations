@@ -21,6 +21,14 @@ model user {
   user_organization user_organization[]
   post              post[]
   permissions       user_permission[]
+  plan              PLAN                @default(FREE)
+  lastLogin         DateTime?
+  createdAt         DateTime            @default(now())
+}
+
+enum PLAN {
+  PAID
+  FREE
 }
 
 model organization {
@@ -29,6 +37,7 @@ model organization {
   user_organization user_organization[]
   permission        permission[]
   resources         resource[]
+  createdAt         DateTime            @default(now())
 }
 
 // user can be member of more than one organization, one organization can have many members 
@@ -41,22 +50,26 @@ model user_organization {
   role           role         @relation(fields: [roleId], references: [id])
   roleId         Int
 
+  createdAt DateTime @default(now())
+
   @@unique([userId, organizationId])
 }
 
 // resources
 model post {
-  id          Int    @unique @default(autoincrement())
+  id          Int      @unique @default(autoincrement())
   title       String
   description String
-  author      user   @relation(fields: [userId], references: [id])
+  author      user     @relation(fields: [userId], references: [id])
   userId      Int
+  createdAt   DateTime @default(now())
 }
 
 // action
 model action {
-  id   Int    @unique @default(autoincrement())
-  name ACTION
+  id        Int      @unique @default(autoincrement())
+  name      ACTION
+  createdAt DateTime @default(now())
 }
 
 enum ACTION {
@@ -77,6 +90,8 @@ model permission {
   user_permission user_permission[]
   resourceId      Int?
 
+  createdAt DateTime @default(now())
+
   @@unique([action, resourceId])
 }
 
@@ -88,20 +103,31 @@ model resource {
   attributes     resourceAttribute[]
   permission     permission[]
 
+  createdAt DateTime @default(now())
+
   @@unique([organizationId, name])
 }
 
+enum ATTRIBUTE_TYPE {
+  MEDIA
+  ALPHANUM
+}
+
 model resourceAttribute {
-  id         Int       @unique @default(autoincrement())
+  createdAt  DateTime       @default(now())
+  id         Int            @unique @default(autoincrement())
   name       String
   value      String
-  resource   resource? @relation(fields: [resourceId], references: [id])
+  resource   resource?      @relation(fields: [resourceId], references: [id])
+  media      media[]
   resourceId Int?
+  type       ATTRIBUTE_TYPE @default(ALPHANUM)
 
   @@unique([name, resourceId])
 }
 
 model user_permission {
+  createdAt    DateTime   @default(now())
   id           Int        @unique @default(autoincrement())
   permission   permission @relation(fields: [permissionId], references: [id])
   permissionId Int
@@ -114,6 +140,7 @@ enum RESOURCE {
 }
 
 model permission_role {
+  createdAt    DateTime   @default(now())
   id           Int        @unique @default(autoincrement())
   role         role       @relation(fields: [roleId], references: [id])
   roleId       Int
@@ -122,10 +149,25 @@ model permission_role {
 }
 
 model role {
+  createdAt         DateTime            @default(now())
   id                Int                 @unique @default(autoincrement())
   name              String              @unique
   permission_role   permission_role[]
   user_organization user_organization[]
+}
+
+model media {
+  createdAt           DateTime           @default(now())
+  id                  Int                @unique @default(autoincrement())
+  type                MEDIA
+  url                 String
+  resourceAttribute   resourceAttribute? @relation(fields: [resourceAttributeId], references: [id])
+  resourceAttributeId Int?
+}
+
+enum MEDIA {
+  IMAGE
+  VIDEO
 }
 
 enum ROLE {
