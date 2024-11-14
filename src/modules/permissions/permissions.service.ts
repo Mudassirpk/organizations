@@ -5,7 +5,6 @@ import { PrismaService } from 'src/shared/prisma/prisma.service';
 
 @Injectable()
 export class PermissionsService {
-
   constructor(private readonly prisma: PrismaService) { }
 
   async create(createPermissionDto: CreatePermissionDto) {
@@ -13,15 +12,15 @@ export class PermissionsService {
 
     return await this.prisma.permission.create({
       data: {
-        resource: createPermissionDto.resource,
+        resource: { connect: { id: createPermissionDto.resource } },
         action: {
-          connect: { id: createPermissionDto.actionId }
+          connect: { id: createPermissionDto.actionId },
         },
         organization: {
-          connect: { id: createPermissionDto.organizationId }
-        }
-      }
-    })
+          connect: { id: createPermissionDto.organizationId },
+        },
+      },
+    });
   }
 
   findAll() {
