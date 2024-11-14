@@ -4,7 +4,7 @@ import { AddMemberDTO } from './dto/add-member.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Get('')
   get() {

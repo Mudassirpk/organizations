@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RoleModule } from './modules/role/role.module';
 import { ResourceModule } from './modules/resource/resource.module';
 import { ConfigModule } from '@nestjs/config';
+import { ErrorService } from './shared/error/error.service';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, ErrorService],
 })
 export class AppModule {}
