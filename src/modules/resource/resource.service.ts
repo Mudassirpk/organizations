@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { CreateResourceDTO } from './dto/create-resource.dto';
+import { UpdateResourceDTO } from './dto/update.dto';
 
 @Injectable()
 export class ResourceService {
@@ -38,6 +39,30 @@ export class ResourceService {
         success: false,
         error,
       };
+    }
+  }
+
+  async update(updateDto: UpdateResourceDTO) {
+    try {
+      let updated = [];
+      for (let attribute of updateDto.attributes) {
+        updated.push(
+          await this.prisma.resourceAttribute.update({
+            where: {
+              id: attribute.id,
+              resourceId: updateDto.resourceId,
+            },
+            data: {
+              value: attribute.value,
+            },
+          }),
+        );
+      }
+
+      return { success: true, updated };
+    } catch (error) {
+      console.log(error);
+      return { success: false, error };
     }
   }
 }
