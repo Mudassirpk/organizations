@@ -15,12 +15,10 @@ datasource db {
 
 model user {
   id                Int                 @unique @default(autoincrement())
-  email             String              @unique
+  email             String
   name              String
   password          String
-  role              role                @relation(fields: [roleId], references: [id])
   user_organization user_organization[]
-  roleId            Int
   post              post[]
   permissions       user_permission[]
 }
@@ -30,6 +28,8 @@ model organization {
   name              String              @unique
   user_organization user_organization[]
   permission        permission[]
+  organization_role organization_role[]
+  resources         resource[]
 }
 
 // user can be member of more than one organization, one organization can have many members 
@@ -39,6 +39,10 @@ model user_organization {
   userId         Int
   organization   organization @relation(fields: [organizationId], references: [id])
   organizationId Int
+  role           role         @relation(fields: [roleId], references: [id])
+  roleId         Int
+
+  @@unique([userId, organizationId])
 }
 
 // resources
@@ -69,12 +73,40 @@ model permission {
   organization    organization      @relation(fields: [organizationId], references: [id])
   organizationId  Int
   action          action            @relation(fields: [actionId], references: [id])
-  resource        RESOURCE
+  resource        resource          @relation(fields: [resourceId], references: [id])
   actionId        Int
   permission_role permission_role[]
   user_permission user_permission[]
+  resourceId      Int
+}
 
-  @@unique([resource, actionId])
+model resource {
+  id             Int                 @unique @default(autoincrement())
+  name           String
+  organization   organization        @relation(fields: [organizationId], references: [id])
+  organizationId Int
+  attributes     resourceAttribute[]
+  permission     permission[]
+
+  @@unique([organizationId, name])
+}
+
+model resourceAttribute {
+  id         Int       @unique @default(autoincrement())
+  name       String
+  value      String
+  resource   resource? @relation(fields: [resourceId], references: [id])
+  resourceId Int?
+
+  @@unique([name, resourceId])
+}
+
+model organization_role {
+  id             Int          @unique @default(autoincrement())
+  role           role         @relation(fields: [roleId], references: [id])
+  roleId         Int
+  organization   organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
 }
 
 model user_permission {
@@ -98,10 +130,11 @@ model permission_role {
 }
 
 model role {
-  id              Int               @unique @default(autoincrement())
-  name            ROLE
-  permission_role permission_role[]
-  user            user[]
+  id                Int                 @unique @default(autoincrement())
+  name              String              @unique
+  permission_role   permission_role[]
+  user_organization user_organization[]
+  organization_role organization_role[]
 }
 
 enum ROLE {
