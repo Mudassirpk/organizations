@@ -8,9 +8,18 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RoleModule } from './modules/role/role.module';
 import { ResourceModule } from './modules/resource/resource.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [UserModule, PostModule, PermissionsModule, AuthModule, RoleModule, ResourceModule],
+  imports: [
+    UserModule,
+    PostModule,
+    PermissionsModule,
+    AuthModule,
+    RoleModule,
+    ResourceModule,
+    ConfigModule.forRoot(),
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })

@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { CreateResourceDTO } from './dto/create-resource.dto';
 import { UpdateResourceDTO } from './dto/update.dto';
+import { AddAttributeDTO } from './dto/add-attribute.dto';
 
 @Injectable()
 export class ResourceService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createDTO: CreateResourceDTO) {
     try {
@@ -44,8 +45,8 @@ export class ResourceService {
 
   async update(updateDto: UpdateResourceDTO) {
     try {
-      let updated = [];
-      for (let attribute of updateDto.attributes) {
+      const updated = [];
+      for (const attribute of updateDto.attributes) {
         updated.push(
           await this.prisma.resourceAttribute.update({
             where: {
@@ -58,11 +59,38 @@ export class ResourceService {
           }),
         );
       }
-
       return { success: true, updated };
     } catch (error) {
       console.log(error);
       return { success: false, error };
     }
+  }
+
+  async addAttribute(input: AddAttributeDTO) {
+    try {
+      const addedAttribute = await this.prisma.resourceAttribute.create({
+        data: {
+          resourceId: input.resourceId,
+          name: input.name,
+          value: input.value,
+        },
+      });
+
+      return { success: true, attribute: addedAttribute };
+    } catch (error) {
+      console.log(error);
+      return { success: false, error };
+    }
+  }
+
+  async getByOrganization(organizationId: number) {
+    return await this.prisma.resource.findMany({
+      where: {
+        organizationId,
+      },
+      include: {
+        attributes: true,
+      },
+    });
   }
 }

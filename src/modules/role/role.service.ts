@@ -5,20 +5,13 @@ import { PrismaService } from 'src/shared/prisma/prisma.service';
 
 @Injectable()
 export class RoleService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createRoleDto: CreateRoleDto) {
     try {
-      const role = await this.prisma.organization_role.create({
+      const role = await this.prisma.role.create({
         data: {
-          organization: {
-            connect: { id: createRoleDto.organizationId },
-          },
-          role: {
-            create: {
-              name: createRoleDto.roleName,
-            },
-          },
+          name: createRoleDto.roleName,
         },
       });
 

@@ -15,7 +15,7 @@ datasource db {
 
 model user {
   id                Int                 @unique @default(autoincrement())
-  email             String
+  email             String              @unique
   name              String
   password          String
   user_organization user_organization[]
@@ -28,7 +28,6 @@ model organization {
   name              String              @unique
   user_organization user_organization[]
   permission        permission[]
-  organization_role organization_role[]
   resources         resource[]
 }
 
@@ -56,9 +55,8 @@ model post {
 
 // action
 model action {
-  id         Int          @unique @default(autoincrement())
-  name       ACTION
-  permission permission[]
+  id   Int    @unique @default(autoincrement())
+  name ACTION
 }
 
 enum ACTION {
@@ -72,12 +70,14 @@ model permission {
   id              Int               @unique @default(autoincrement())
   organization    organization      @relation(fields: [organizationId], references: [id])
   organizationId  Int
-  action          action            @relation(fields: [actionId], references: [id])
-  resource        resource          @relation(fields: [resourceId], references: [id])
-  actionId        Int
+  action          ACTION?
+  resource        resource?         @relation(fields: [resourceId], references: [id])
+  resourceActions ACTION[]
   permission_role permission_role[]
   user_permission user_permission[]
-  resourceId      Int
+  resourceId      Int?
+
+  @@unique([action, resourceId])
 }
 
 model resource {
@@ -99,14 +99,6 @@ model resourceAttribute {
   resourceId Int?
 
   @@unique([name, resourceId])
-}
-
-model organization_role {
-  id             Int          @unique @default(autoincrement())
-  role           role         @relation(fields: [roleId], references: [id])
-  roleId         Int
-  organization   organization @relation(fields: [organizationId], references: [id])
-  organizationId Int
 }
 
 model user_permission {
@@ -134,7 +126,6 @@ model role {
   name              String              @unique
   permission_role   permission_role[]
   user_organization user_organization[]
-  organization_role organization_role[]
 }
 
 enum ROLE {

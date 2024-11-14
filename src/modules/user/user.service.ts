@@ -7,12 +7,16 @@ import { randomString } from 'src/shared/utils';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async get() {
-    return await this.prisma.user.findFirst({
+    return await this.prisma.user.findMany({
       include: {
-        permissions: true,
+        permissions: {
+          include: {
+            permission: true,
+          },
+        },
         user_organization: {
           select: {
             organization: true,
@@ -79,7 +83,9 @@ export class UserService {
           message: 'member with same email already exists',
         };
 
-      const password = await bcryptjs.hash(randomString(8), 10);
+      const randomPassword = randomString(8);
+      console.log('RP:', randomPassword);
+      const password = await bcryptjs.hash(randomPassword, 10);
 
       const member = await this.prisma.user.create({
         data: {

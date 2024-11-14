@@ -5,20 +5,38 @@ import { PrismaService } from 'src/shared/prisma/prisma.service';
 
 @Injectable()
 export class PermissionsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createPermissionDto: CreatePermissionDto) {
     // later change this so, that only organization's admin can perfom this action
 
+    if (createPermissionDto.resourceActions) {
+      return await this.prisma.permission.create({
+        data: {
+          organization: {
+            connect: { id: createPermissionDto.organizationId },
+          },
+          resourceActions: createPermissionDto.resourceActions,
+        },
+      });
+    }
+
     return await this.prisma.permission.create({
       data: {
         resource: { connect: { id: createPermissionDto.resource } },
-        action: {
-          connect: { id: createPermissionDto.actionId },
-        },
+        action: createPermissionDto.action,
         organization: {
           connect: { id: createPermissionDto.organizationId },
         },
+      },
+    });
+  }
+
+  async assign({ user, permission }: { user: number; permission: number }) {
+    return await this.prisma.user_permission.create({
+      data: {
+        userId: user,
+        permissionId: permission,
       },
     });
   }
