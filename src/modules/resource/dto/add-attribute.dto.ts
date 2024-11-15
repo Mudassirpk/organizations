@@ -7,4 +7,7 @@ export class AddAttributeDTO {
   value: string;
   @ApiProperty()
   resourceId: number;
+
+  @ApiProperty()
+  defaultValue?: string;
 }
