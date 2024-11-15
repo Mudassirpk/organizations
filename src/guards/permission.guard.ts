@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
-import { TActionRequsetMeta } from 'types/request';
+import { TActionRequestMeta } from 'types/request';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
@@ -18,17 +18,20 @@ export class PermissionGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    const meta: TActionRequsetMeta = request.body.meta;
-
     const user = await this.prisma.user.findUnique({
       where: { id: request.user.id },
+      include: {
+        permissions: {
+          include: {
+            permission: {
+              include: {
+                resource: true,
+              },
+            },
+          },
+        },
+      },
     });
-
-    if (!meta?.action?.type || !meta?.action?.resource || !meta?.organization)
-      throw new HttpException(
-        'Invalid action request, an action request must specify meta in body as => {action:{type:action_type,resource:resourceId},organization:organizationId}',
-        400,
-      );
 
     const organization = await this.prisma.user_organization.findFirst({
       where: {
@@ -38,11 +41,40 @@ export class PermissionGuard implements CanActivate {
         role: true,
       },
     });
-
-    console.log(organization.role.name);
-
     // admin can perform any action
     if (organization.role.name === 'ADMIN') return true;
+
+    if (user.permissions.length === 0)
+      throw new HttpException('UnAuthorized', 401);
+
+    const meta: TActionRequestMeta = request.body.meta;
+
+    if (
+      (!meta.actionAttributes || meta.actionAttributes.length === 0) &&
+      (!meta?.action?.type || !meta?.action?.resource || !meta?.organization)
+    )
+      throw new HttpException(
+        'Invalid action request, an action request must specify meta in body as => {action:{type:action_type,resource:resourceId},organization:organizationId}',
+        400,
+      );
+
+    console.log(user.permissions);
+
+    const higherPermission = user.permissions.find((permission) => {
+      console.log(
+        permission.permission.resourceActions,
+        ' : ',
+        meta.actionAttributes,
+      );
+      return (
+        permission.permission.resourceActions &&
+        permission.permission.resourceActions.find((rA) =>
+          meta.actionAttributes.includes(rA),
+        )
+      );
+    });
+
+    if (higherPermission) return true;
 
     const action = meta.action.type;
     const resource = meta.action.resource;
@@ -69,6 +101,6 @@ export class PermissionGuard implements CanActivate {
 
     if (!permission) throw new HttpException('Unauthorized', 401);
 
-    return true;
+    return false;
   }
 }
