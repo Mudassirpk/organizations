@@ -131,7 +131,7 @@ model resource_atom {
 
 enum ATTRIBUTE_TYPE {
   MEDIA
-  ALPHANUM
+  ALPHANUM // can be a number or a string
 }
 
 model user_permission {
