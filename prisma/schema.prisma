@@ -95,35 +95,43 @@ model permission {
   @@unique([action, resourceId])
 }
 
+// abstract resource contains definition of resource
 model resource {
-  id             Int                 @unique @default(autoincrement())
+  id             Int          @unique @default(autoincrement())
   name           String
-  organization   organization        @relation(fields: [organizationId], references: [id])
+  organization   organization @relation(fields: [organizationId], references: [id])
   organizationId Int
-  attributes     resourceAttribute[]
+  attributes     attribute[]
   permission     permission[]
 
-  createdAt DateTime @default(now())
+  createdAt     DateTime        @default(now())
+  resource_atom resource_atom[]
 
   @@unique([organizationId, name])
+}
+
+// attributes definition of abstract resource
+model attribute {
+  id         Int            @unique @default(autoincrement())
+  name       String
+  type       ATTRIBUTE_TYPE @default(ALPHANUM)
+  resource   resource?      @relation(fields: [resourceId], references: [id])
+  resourceId Int?
+
+  @@unique([resourceId, name])
+}
+
+// Meterial form of abstract resource
+model resource_atom {
+  resource   resource @relation(fields: [resourceId], references: [id])
+  id         Int      @unique @default(autoincrement())
+  data       Json     @db.JsonB
+  resourceId Int
 }
 
 enum ATTRIBUTE_TYPE {
   MEDIA
   ALPHANUM
-}
-
-model resourceAttribute {
-  createdAt  DateTime       @default(now())
-  id         Int            @unique @default(autoincrement())
-  name       String
-  value      String
-  resource   resource?      @relation(fields: [resourceId], references: [id])
-  media      media[]
-  resourceId Int?
-  type       ATTRIBUTE_TYPE @default(ALPHANUM)
-
-  @@unique([name, resourceId])
 }
 
 model user_permission {
@@ -157,12 +165,10 @@ model role {
 }
 
 model media {
-  createdAt           DateTime           @default(now())
-  id                  Int                @unique @default(autoincrement())
-  type                MEDIA
-  url                 String
-  resourceAttribute   resourceAttribute? @relation(fields: [resourceAttributeId], references: [id])
-  resourceAttributeId Int?
+  createdAt DateTime @default(now())
+  id        Int      @unique @default(autoincrement())
+  type      MEDIA
+  url       String
 }
 
 enum MEDIA {
