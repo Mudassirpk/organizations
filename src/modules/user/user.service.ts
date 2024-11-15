@@ -62,10 +62,10 @@ export class UserService {
     }
   }
 
-  async addMember(addDto: AddMemberDTO) {
+  async addMember(addDto: AddMemberDTO, adminId: number) {
     try {
       const admin_organization = await this.prisma.user_organization.findFirst({
-        where: { userId: addDto.adminId },
+        where: { userId: adminId },
       });
 
       const user_exists_in_organization =
