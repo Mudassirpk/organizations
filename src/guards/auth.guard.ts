@@ -16,7 +16,7 @@ export class AuthGaurd implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.authorization.split('Bearer ')[1];
+    const token = request.headers.authorization?.split('Bearer ')[1];
     if (!token) throw new HttpException('Unauthorized', 401);
     const verified = jwt.verify(token, this.configService.get('JWT_SECRET'));
     if (!verified) return false;
