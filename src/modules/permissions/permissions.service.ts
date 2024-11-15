@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { AssignPermissionDto } from "./dto/assign-permission.dto";
 
 @Injectable()
 export class PermissionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createPermissionDto: CreatePermissionDto) {
-    // later change this so, that only organization's admin can perfom this action
+    //TODO: later change this so, that only organization's admin can perfom this action
 
     if (createPermissionDto.resourceActions) {
       return await this.prisma.permission.create({
@@ -32,7 +33,7 @@ export class PermissionsService {
     });
   }
 
-  async assign({ user, permission }: { user: number; permission: number }) {
+  async assign({ user, permission }: AssignPermissionDto) {
     return await this.prisma.user_permission.create({
       data: {
         userId: user,

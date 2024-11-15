@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateRoleDto {
+export class AssignPermissionDto {
   @ApiProperty()
-  organizationId: number;
+  user: number;
   @ApiProperty()
-  roleName: string;
+  permission: number;
 }

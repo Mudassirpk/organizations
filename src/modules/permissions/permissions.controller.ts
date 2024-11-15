@@ -10,6 +10,7 @@ import {
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { AssignPermissionDto } from "./dto/assign-permission.dto";
 
 @Controller('permissions')
 export class PermissionsController {
@@ -21,7 +22,7 @@ export class PermissionsController {
   }
 
   @Post('assign')
-  assign(@Body() body: { user: number; permission: number }) {
+  assign(@Body() body: AssignPermissionDto) {
     return this.permissionsService.assign(body);
   }
 
