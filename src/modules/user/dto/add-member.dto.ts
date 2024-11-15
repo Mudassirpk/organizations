@@ -7,8 +7,4 @@ export class AddMemberDTO {
   email: string;
   @ApiProperty()
   roleId: number;
-
-  // TODO: later remove it as we will get userid from token
-  @ApiProperty()
-  adminId: number;
 }
