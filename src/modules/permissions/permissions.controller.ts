@@ -10,7 +10,7 @@ import {
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
-import { AssignPermissionDto } from "./dto/assign-permission.dto";
+import { AssignPermissionDto } from './dto/assign-permission.dto';
 
 @Controller('permissions')
 export class PermissionsController {
