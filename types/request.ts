@@ -1,7 +1,8 @@
 import { ACTION } from '@prisma/client';
 
-export type TActionRequsetMeta = {
-  action: {
+export type TActionRequestMeta = {
+  actionAttributes: ACTION[];
+  action?: {
     type: ACTION;
     resource: number; // resourceId
   };
