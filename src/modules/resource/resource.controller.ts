@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { ResourceService } from './resource.service';
 import { CreateResourceDTO } from './dto/create-resource.dto';
 import { UpdateResourceDTO } from './dto/update.dto';
@@ -6,6 +14,7 @@ import { AddAttributeDTO } from './dto/add-attribute.dto';
 import { AuthGaurd } from 'src/guards/auth.guard';
 import { PermissionGuard } from 'src/guards/permission.guard';
 import { CreateResourceItemDTO } from './dto/create-resource-item.dto';
+import { UpdateAttributeDTO } from "./dto/update-attribute.dto";
 
 @Controller('resource')
 export class ResourceController {
@@ -31,6 +40,11 @@ export class ResourceController {
   @Post('attribute')
   addAttribute(@Body() body: AddAttributeDTO) {
     return this.resourceService.addAttribute(body);
+  }
+
+  @Put('attribute')
+  updateAttribute(@Body() body: UpdateAttributeDTO) {
+    return this.resourceService.updateAttribute(body);
   }
 
   @Get(':organizationId')

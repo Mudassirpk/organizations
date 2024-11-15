@@ -4,6 +4,8 @@ import { CreateResourceDTO } from './dto/create-resource.dto';
 import { UpdateResourceDTO } from './dto/update.dto';
 import { AddAttributeDTO } from './dto/add-attribute.dto';
 import { CreateResourceItemDTO } from './dto/create-resource-item.dto';
+import { UpdateAttributeDTO } from './dto/update-attribute.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ResourceService {
@@ -11,11 +13,15 @@ export class ResourceService {
 
   async create_resource_item(input: CreateResourceItemDTO) {
     try {
+      const data = {};
+
+      for (const value of input.values) {
+        data[value.name] = value.value;
+      }
+
       const item = await this.prisma.resource_atom.create({
         data: {
-          data: input.values.map((v) => {
-            return { [v.name]: v.value };
-          }),
+          data: data,
           resourceId: input.resource,
         },
       });
@@ -94,13 +100,40 @@ export class ResourceService {
 
       // add default value to all other created resource_atoms for this resource
       await this.prisma.$executeRaw`
-          UPDATE "resource_atom" SET "data" = "data"::jsonb || jsonb_build_object(${input.name}, ${input.defaultValue || ''})  WHERE "resourceId" = ${input.resourceId}
-        `;
+          UPDATE "resource_atom"
+          SET "data" = "data"::jsonb || jsonb_build_object(${input.name}, ${input.defaultValue || ''})
+          WHERE "resourceId" = ${input.resourceId}
+      `;
 
       return { success: true, attribute: addedAttribute };
     } catch (error) {
       console.log(error);
       return { success: false, error };
+    }
+  }
+
+  async updateAttribute(input: UpdateAttributeDTO) {
+    try {
+      const atom = await this.prisma.resource_atom.findUnique({
+        where: { id: input.atomId },
+      });
+
+      if (atom) {
+        const data = atom.data;
+        data[input.name] = input.value;
+
+        await this.prisma.resource_atom.update({
+          where: {
+            id: atom.id,
+            resourceId: atom.resourceId,
+          },
+          data: {
+            data: data,
+          },
+        });
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
