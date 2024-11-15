@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -14,7 +15,7 @@ import { AddAttributeDTO } from './dto/add-attribute.dto';
 import { AuthGaurd } from 'src/guards/auth.guard';
 import { PermissionGuard } from 'src/guards/permission.guard';
 import { CreateResourceItemDTO } from './dto/create-resource-item.dto';
-import { UpdateAttributeDTO } from "./dto/update-attribute.dto";
+import { UpdateAttributeDTO } from './dto/update-attribute.dto';
 
 @Controller('resource')
 export class ResourceController {
@@ -42,6 +43,7 @@ export class ResourceController {
     return this.resourceService.addAttribute(body);
   }
 
+  @UseGuards(AuthGaurd, PermissionGuard)
   @Put('attribute')
   updateAttribute(@Body() body: UpdateAttributeDTO) {
     return this.resourceService.updateAttribute(body);
