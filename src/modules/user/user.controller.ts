@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AddMemberDTO } from './dto/add-member.dto';
+import { UserId } from '../../decorators/userId.decorator';
+import { AuthGaurd } from '../../guards/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -12,7 +14,8 @@ export class UserController {
   }
 
   @Post('member/add')
-  addMember(@Body() body: AddMemberDTO) {
-    return this.userService.addMember(body);
+  @UseGuards(AuthGaurd)
+  addMember(@Body() body: AddMemberDTO, @UserId() userId: number) {
+    return this.userService.addMember(body, userId);
   }
 }
