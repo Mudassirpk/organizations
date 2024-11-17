@@ -37,6 +37,7 @@ model organization {
   user_organization user_organization[]
   permission        permission[]
   resources         resource[]
+  userOrgId         String
   createdAt         DateTime            @default(now())
 }
 

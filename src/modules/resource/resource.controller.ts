@@ -49,6 +49,11 @@ export class ResourceController {
     return this.resourceService.updateAttribute(body);
   }
 
+  @Get('by-id/:id')
+  getById(@Param('id') id: number) {
+    return this.resourceService.getById(+id);
+  }
+
   @Get(':organizationId')
   getByOrganization(@Param() { organizationId }: { organizationId: string }) {
     return this.resourceService.getByOrganization(parseInt(organizationId));

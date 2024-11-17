@@ -54,16 +54,33 @@ export class ResourceService {
       });
 
       return {
+        message: 'Resource created successfully',
         resource,
         success: true,
       };
     } catch (error) {
       console.log(error);
+      if (error.code === 'P2002') {
+        return {
+          success: false,
+          message: `resource with same ${error.meta.target[0] === 'organizationId' ? 'name' : error.meta.target[0]} already exists`,
+        };
+      }
       return {
         success: false,
         error,
       };
     }
+  }
+
+  async getById(id: number) {
+    return await this.prisma.resource.findUnique({
+      where: { id },
+      include: {
+        resource_atom: true,
+        attributes:true
+      },
+    });
   }
 
   async update(updateDto: UpdateResourceDTO) {

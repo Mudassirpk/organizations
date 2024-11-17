@@ -28,7 +28,9 @@ export class UserService {
 
   async create(createDto: CreateUserDTO) {
     try {
+
       const password = await bcryptjs.hash(createDto.password, 10);
+      const userOrgId = randomString(6);
 
       const user = await this.prisma.user.create({
         data: {
@@ -45,6 +47,7 @@ export class UserService {
               organization: {
                 create: {
                   name: createDto.organizationName,
+                  userOrgId: userOrgId,
                 },
               },
             },
