@@ -9,7 +9,7 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ResourceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create_resource_item(input: CreateResourceItemDTO) {
     try {
@@ -78,31 +78,69 @@ export class ResourceService {
       where: { id },
       include: {
         resource_atom: true,
-        attributes:true
+        attributes: true,
       },
     });
   }
 
   async update(updateDto: UpdateResourceDTO) {
     try {
+      // if name was updated
+      if (updateDto.name) {
+        await this.prisma.resource.update({
+          where: { id: updateDto.resourceId },
+          data: {
+            name: updateDto.name,
+          },
+        });
+      }
+
       const updated = [];
       for (const attribute of updateDto.attributes) {
-        updated.push(
-          await this.prisma.attribute.update({
-            where: {
-              id: attribute.id,
-              resourceId: updateDto.resourceId,
-            },
+
+        // updated or deleted attributes
+        if (attribute.id) {
+          if (attribute.delete) {
+            await this.prisma.attribute.delete({
+              where: { id: attribute.id },
+            });
+          } else {
+            updated.push(
+              await this.prisma.attribute.update({
+                where: {
+                  id: attribute.id,
+                  resourceId: updateDto.resourceId,
+                },
+                data: {
+                  name: attribute.name,
+                  type: attribute.type,
+                },
+              }),
+            );
+          }
+        } else {
+          // newly added attributes
+          await this.prisma.attribute.create({
             data: {
-              name: attribute.value,
+              resource: {
+                connect: {
+                  id: updateDto.resourceId,
+                },
+              },
+              name: attribute.name,
+              type: attribute.type,
             },
-          }),
-        );
+          });
+        }
       }
-      return { success: true, updated };
+      return {
+        success: true,
+        updated,
+        message: 'Resource updated successfully',
+      };
     } catch (error) {
       console.log(error);
-      return { success: false, error };
+      return { success: false, error, message: 'Internal server error' };
     }
   }
 
