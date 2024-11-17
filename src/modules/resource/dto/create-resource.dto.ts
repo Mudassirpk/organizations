@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { ATTRIBUTE_TYPE } from '@prisma/client';
 
 export class CreateResourceDTO {
   @ApiProperty()
@@ -10,5 +11,5 @@ export class CreateResourceDTO {
 
 export type TAttribute = {
   name: string;
-  value: string;
+  type: ATTRIBUTE_TYPE;
 };
