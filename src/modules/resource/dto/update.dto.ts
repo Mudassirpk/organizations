@@ -5,6 +5,10 @@ export class UpdateResourceDTO {
   // TODO: later add auth attributes
   @ApiProperty()
   resourceId: number;
+
   @ApiProperty()
-  attributes: (TAttribute & { id: number })[];
+  name?: string;
+
+  @ApiProperty()
+  attributes: (TAttribute & { id?: number; delete?: boolean })[];
 }
