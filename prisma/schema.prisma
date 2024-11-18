@@ -108,31 +108,46 @@ model resource {
   createdAt     DateTime        @default(now())
   resource_atom resource_atom[]
 
+  // --- disabled will be used later for MTM relations
+  // === {relatedResource:string (id), relationType:RELATION_TYPE} === 
+  // relations Json[] @db.JsonB
+
   @@unique([organizationId, name])
 }
 
 // attributes definition of abstract resource
 model attribute {
-  id         Int            @unique @default(autoincrement())
-  name       String
-  type       ATTRIBUTE_TYPE @default(ALPHANUM)
-  resource   resource?      @relation(fields: [resourceId], references: [id])
-  resourceId Int?
+  id           Int            @unique @default(autoincrement())
+  name         String
+  type         ATTRIBUTE_TYPE @default(ALPHANUM)
+  resource     resource?      @relation(fields: [resourceId], references: [id])
+  resourceId   Int?
+  relationType RELATION_TYPE  @default(OTO) // if no "relationId" provided means there is no relation but OTO with the attribtue itself
+  relationId   Int?
 
   @@unique([resourceId, name])
 }
 
 // Meterial form of abstract resource
 model resource_atom {
-  resource   resource @relation(fields: [resourceId], references: [id])
-  id         Int      @unique @default(autoincrement())
-  data       Json     @db.JsonB
-  resourceId Int
+  resource     resource @relation(fields: [resourceId], references: [id])
+  id           Int      @unique @default(autoincrement())
+  data         Json     @db.JsonB
+
+  relationData String[] // will store multiple ids in case of OTM/MTM
+  resourceId   Int
+}
+
+enum RELATION_TYPE {
+  OTO
+  MTM
+  OTM
 }
 
 enum ATTRIBUTE_TYPE {
   MEDIA
   ALPHANUM // can be a number or a string
+  RESOURCE // relation to other resources
 }
 
 model user_permission {

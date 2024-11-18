@@ -5,18 +5,40 @@ import { UpdateResourceDTO } from './dto/update.dto';
 import { AddAttributeDTO } from './dto/add-attribute.dto';
 import { CreateResourceItemDTO } from './dto/create-resource-item.dto';
 import { UpdateAttributeDTO } from './dto/update-attribute.dto';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ResourceService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create_resource_item(input: CreateResourceItemDTO) {
     try {
       const data = {};
 
+      const attributes = (
+        await this.prisma.resource.findUnique({
+          where: { id: input.resource },
+          include: {
+            attributes: true,
+          },
+        })
+      ).attributes;
+
       for (const value of input.values) {
-        data[value.name] = value.value;
+        const relationNames = attributes
+          .filter((a) => a.type === 'RESOURCE')
+          .map((a) => a.name);
+
+        const relations = attributes.filter((a) => a.type === 'RESOURCE');
+
+        if (
+          relationNames.includes(value.name) &&
+          relations.find((r) => r.name === value.name).relationType === 'OTM'
+        ) {
+          // handle addition OTM relation field
+          data[value.name] = [value.value];
+        } else {
+          data[value.name] = value.value;
+        }
       }
 
       const item = await this.prisma.resource_atom.create({
@@ -41,6 +63,13 @@ export class ResourceService {
           attributes: {
             createMany: {
               data: createDTO.attributes.map((attribute) => {
+                if (attribute.relationId) {
+                  // if the attribute is a relation to another resource
+                  return {
+                    name: attribute.name,
+                    relationId: attribute.relationId,
+                  };
+                }
                 return {
                   name: attribute.name,
                 };
@@ -97,7 +126,6 @@ export class ResourceService {
 
       const updated = [];
       for (const attribute of updateDto.attributes) {
-
         // updated or deleted attributes
         if (attribute.id) {
           if (attribute.delete) {
@@ -150,13 +178,17 @@ export class ResourceService {
         data: {
           resourceId: input.resourceId,
           name: input.name,
+          type: input.type,
+          relationId: input.relationId,
+          relationType: input.relationType,
         },
       });
 
       // add default value to all other created resource_atoms for this resource
       await this.prisma.$executeRaw`
           UPDATE "resource_atom"
-          SET "data" = "data"::jsonb || jsonb_build_object(${input.name}, ${input.defaultValue || ''})
+          SET "data" = "data"::jsonb || jsonb_build_object(${input.name}, ${input.defaultValue || ''}) 
+           ${input.relationId ? ` || jsonb_build_object(${input.relationId}, ${input.relationId})` : ``}
           WHERE "resourceId" = ${input.resourceId}
       `;
 
@@ -193,7 +225,7 @@ export class ResourceService {
   }
 
   async getByOrganization(organizationId: number) {
-    return await this.prisma.resource.findMany({
+    const resources = await this.prisma.resource.findMany({
       where: {
         organizationId,
       },
@@ -202,5 +234,30 @@ export class ResourceService {
         resource_atom: true,
       },
     });
+
+    const resourcesWithAtoms = [];
+
+    for (const r of resources) {
+      const relations = r.attributes.filter((a) => a.type === 'RESOURCE');
+      for (const relation of relations) {
+        const ras = [];
+        for (const ra of r.resource_atom) {
+          if (relation.relationType === 'OTM') {
+            ra.data[relation.name] = await this.prisma.resource.findMany({
+              where: { id: relation.relationId },
+              include: { resource_atom: true },
+            });
+          } else if (relation.relationType === 'OTO') {
+            ra.data[relation.name] = await this.prisma.resource.findUnique({
+              where: { id: relation.relationId },
+              include: { resource_atom: true },
+            });
+          }
+          ras.push(ra);
+        }
+      }
+      resourcesWithAtoms.push(r);
+    }
+    return resourcesWithAtoms;
   }
 }

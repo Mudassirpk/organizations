@@ -12,4 +12,5 @@ export class CreateResourceDTO {
 export type TAttribute = {
   name: string;
   type: ATTRIBUTE_TYPE;
+  relationId?: number; // id of resource to relate
 };
