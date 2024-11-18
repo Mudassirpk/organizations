@@ -110,7 +110,7 @@ model resource {
 
   // --- disabled will be used later for MTM relations
   // === {relatedResource:string (id), relationType:RELATION_TYPE} === 
-  // relations Json[] @db.JsonB
+  relations Json[] @db.JsonB
 
   @@unique([organizationId, name])
 }
@@ -130,10 +130,11 @@ model attribute {
 
 // Meterial form of abstract resource
 model resource_atom {
-  resource     resource @relation(fields: [resourceId], references: [id])
-  id           Int      @unique @default(autoincrement())
-  data         Json     @db.JsonB
+  resource resource @relation(fields: [resourceId], references: [id])
+  id       Int      @unique @default(autoincrement())
+  data     Json     @db.JsonB
 
+  // name:attribute_name, value:string|string[]
   relationData String[] // will store multiple ids in case of OTM/MTM
   resourceId   Int
 }
