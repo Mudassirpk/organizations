@@ -192,6 +192,21 @@ export class ResourceService {
         },
       });
 
+      if (input.relationId) {
+        const relations = (await this.prisma.resource.findUnique({
+          where: { id: input.relationId },
+        })).relations;
+
+        relations.push({ relatedResource: input.relationId, relationType: input.relationType })
+
+        await this.prisma.resource.update({
+          where: { id: input.relationId },
+          data: {
+            relations
+          }
+        })
+      }
+
       // const resource = await this.prisma.resource.findUnique({ where: { id: input.resourceId } })
 
       // add default value to all other created resource_atoms for this resource
