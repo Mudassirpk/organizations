@@ -43,7 +43,19 @@ export class ResourceService {
           relations.find((r) => r.name === value.name).relationType === 'OTM'
         ) {
           // handle addition OTM relation field
-          data[value.name] = [value.value];
+          if (
+            typeof value.value === 'string' &&
+            value.value.toLowerCase().trim() === 'all'
+          ) {
+            // if all atoms where selected for relation
+            data[value.name] = value.value;
+          } else if (
+            typeof value.value === 'object' &&
+            Array.isArray(value.value as any)
+          ) {
+            // if only specific atoms where selected for relation
+            data[value.name] = value.value;
+          }
         } else {
           data[value.name] = value.value;
         }
@@ -56,7 +68,7 @@ export class ResourceService {
         },
       });
 
-      return item;
+      return { success: true, item };
     } catch (error) {
       console.log(error);
     }
@@ -246,14 +258,38 @@ export class ResourceService {
     for (const relation of relations) {
       const ras = [];
       for (const ra of resource.resource_atom) {
-        ra.data[relation.name] = (
-          await this.prisma.resource.findUnique({
-            where: { id: relation.relationId },
-            include: { resource_atom: true },
-          })
-        ).resource_atom.map((ra) => {
-          return { id: ra.id, ...(ra.data as any) };
-        });
+        console.log(relation.name, ' : ', ra.data[relation.name]);
+        if (
+          typeof ra.data[relation.name] === 'string' &&
+          ra.data[relation.name] &&
+          ra.data[relation.name].toLowerCase().trim() === 'all'
+        ) {
+          ra.data[relation.name] = (
+            await this.prisma.resource.findUnique({
+              where: { id: relation.relationId },
+              include: { resource_atom: true },
+            })
+          ).resource_atom.map((ra) => {
+            return { id: ra.id, ...(ra.data as any) };
+          });
+        } else if (Array.isArray(ra.data[relation.name])) {
+          ra.data[relation.name] = (
+            await this.prisma.resource.findUnique({
+              where: { id: relation.relationId },
+              include: {
+                resource_atom: {
+                  where: {
+                    id: {
+                      in: ra.data[relation.name].map((id) => parseInt(id)),
+                    },
+                  },
+                },
+              },
+            })
+          ).resource_atom.map((ra) => {
+            return { id: ra.id, ...(ra.data as any) };
+          });
+        }
 
         ras.push(ra);
       }
