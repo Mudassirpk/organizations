@@ -258,7 +258,6 @@ export class ResourceService {
     for (const relation of relations) {
       const ras = [];
       for (const ra of resource.resource_atom) {
-        console.log(relation.name, ' : ', ra.data[relation.name]);
         if (
           typeof ra.data[relation.name] === 'string' &&
           ra.data[relation.name] &&
