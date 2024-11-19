@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ResourceService } from './resource.service';
@@ -49,12 +50,26 @@ export class ResourceController {
   }
 
   @Get('by-id/:id')
-  getById(@Param('id') id: number) {
-    return this.resourceService.getById(+id);
+  getById(
+    @Param('id') id: number,
+    @Query() query: { relations?: string; atoms?: string; attributes?: string },
+  ) {
+    return this.resourceService.getById(+id, {
+      relations: query.relations === 'true',
+      atoms: query.atoms === 'true',
+      attributes: query.attributes === 'true',
+    });
   }
 
   @Get(':organizationId')
-  getByOrganization(@Param() { organizationId }: { organizationId: string }) {
-    return this.resourceService.getByOrganization(parseInt(organizationId));
+  getByOrganization(
+    @Param() { organizationId }: { organizationId: string },
+    @Query() query: { relations?: string; atoms?: string; attributes?: string },
+  ) {
+    return this.resourceService.getByOrganization(parseInt(organizationId), {
+      relations: query.relations === 'true',
+      atoms: query.atoms === 'true',
+      attributes: query.attributes === 'true',
+    });
   }
 }

@@ -9,7 +9,7 @@ import { attribute } from '@prisma/client';
 
 @Injectable()
 export class ResourceService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create_resource_item(input: CreateResourceItemDTO) {
     try {
@@ -25,12 +25,12 @@ export class ResourceService {
       ).attributes;
 
       for (const value of input.values) {
-
         // if new atom has a key which not defined on attributes of a resource
-        if (!attributes.map(a => a.name).includes(value.name)) return {
-          success: false,
-          message: `Invalid key ${value.name}`
-        }
+        if (!attributes.map((a) => a.name).includes(value.name))
+          return {
+            success: false,
+            message: `Invalid key ${value.name}`,
+          };
 
         const relationNames = attributes
           .filter((a) => a.type === 'RESOURCE')
@@ -76,7 +76,7 @@ export class ResourceService {
                   return {
                     name: attribute.name,
                     relationId: attribute.relationId,
-                    type: "RESOURCE"
+                    type: 'RESOURCE',
                   };
                 }
                 return {
@@ -111,15 +111,23 @@ export class ResourceService {
     }
   }
 
-  async getById(id: number) {
+  async getById(
+    id: number,
+    options: { relations?: boolean; atoms?: boolean; attributes?: boolean },
+  ) {
     const resource = await this.prisma.resource.findUnique({
       where: { id },
       include: {
-        resource_atom: true,
-        attributes: true,
+        resource_atom: options.atoms,
+        attributes: options.attributes,
       },
     });
-    return await this.getResourceWithRelations(resource);
+
+    if (options.relations) {
+      return await this.getResourceWithRelations(resource);
+    }
+
+    return resource;
   }
 
   async update(updateDto: UpdateResourceDTO) {
@@ -195,18 +203,23 @@ export class ResourceService {
       });
 
       if (input.relationId) {
-        const relations = (await this.prisma.resource.findUnique({
-          where: { id: input.relationId },
-        })).relations;
+        const relations = (
+          await this.prisma.resource.findUnique({
+            where: { id: input.relationId },
+          })
+        ).relations;
 
-        relations.push({ relatedResource: input.relationId, relationType: input.relationType })
+        relations.push({
+          relatedResource: input.relationId,
+          relationType: input.relationType,
+        });
 
         await this.prisma.resource.update({
           where: { id: input.relationId },
           data: {
-            relations
-          }
-        })
+            relations,
+          },
+        });
       }
 
       // const resource = await this.prisma.resource.findUnique({ where: { id: input.resourceId } })
@@ -214,7 +227,7 @@ export class ResourceService {
       // add default value to all other created resource_atoms for this resource
       // await this.prisma.$executeRaw`
       //     UPDATE "resource_atom"
-      //     SET "data" = "data"::jsonb || jsonb_build_object(${input.name}, ${input.defaultValue || ''}) 
+      //     SET "data" = "data"::jsonb || jsonb_build_object(${input.name}, ${input.defaultValue || ''})
       //      ${input.relationId ? ` || jsonb_build_object(${JSON.stringify(resource.name + '_id')}, ${JSON.stringify(input.relationId)})` : `""`}
       //     WHERE "resourceId" = ${input.resourceId}
       // `;
@@ -227,14 +240,20 @@ export class ResourceService {
   }
 
   async getResourceWithRelations(resource: any) {
-    const relations = resource.attributes.filter((a: attribute) => a.type === 'RESOURCE');
+    const relations = resource.attributes.filter(
+      (a: attribute) => a.type === 'RESOURCE',
+    );
     for (const relation of relations) {
       const ras = [];
       for (const ra of resource.resource_atom) {
-        ra.data[relation.name] = (await this.prisma.resource.findUnique({
-          where: { id: relation.relationId },
-          include: { resource_atom: true },
-        })).resource_atom.map(ra => { return { id: ra.id, ...(ra.data as any) } });
+        ra.data[relation.name] = (
+          await this.prisma.resource.findUnique({
+            where: { id: relation.relationId },
+            include: { resource_atom: true },
+          })
+        ).resource_atom.map((ra) => {
+          return { id: ra.id, ...(ra.data as any) };
+        });
 
         ras.push(ra);
       }
@@ -267,22 +286,29 @@ export class ResourceService {
     }
   }
 
-  async getByOrganization(organizationId: number) {
+  async getByOrganization(
+    organizationId: number,
+    options: { relations?: boolean; atoms?: boolean; attributes?: boolean },
+  ) {
     const resources = await this.prisma.resource.findMany({
       where: {
         organizationId,
       },
       include: {
-        attributes: true,
-        resource_atom: true,
+        attributes: options.attributes,
+        resource_atom: options.atoms,
       },
     });
 
-    const resourcesWithAtoms = [];
+    if (options.relations) {
+      const resourcesWithAtoms = [];
 
-    for (const r of resources) {
-      resourcesWithAtoms.push(await this.getResourceWithRelations(r));
+      for (const r of resources) {
+        resourcesWithAtoms.push(await this.getResourceWithRelations(r));
+      }
+      return resourcesWithAtoms;
     }
-    return resourcesWithAtoms;
+
+    return resources;
   }
 }
