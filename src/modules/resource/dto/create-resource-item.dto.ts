@@ -5,7 +5,7 @@ export class CreateResourceItemDTO {
   values: {
     name: string;
     value:
-      | string // normal value (ALPHANUM) | "all" if all resource are selected for a relation
+      | string // normal value (ALPHANUM) | "all" if all resources are selected for a relation
       | string[]; // only some atoms where selected// all atoms where selected;
   }[];
 
