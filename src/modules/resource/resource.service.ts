@@ -5,6 +5,7 @@ import { UpdateResourceDTO } from './dto/update.dto';
 import { AddAttributeDTO } from './dto/add-attribute.dto';
 import { CreateResourceItemDTO } from './dto/create-resource-item.dto';
 import { UpdateAttributeDTO } from './dto/update-attribute.dto';
+import { attribute } from '@prisma/client';
 
 @Injectable()
 export class ResourceService {
@@ -75,6 +76,7 @@ export class ResourceService {
                   return {
                     name: attribute.name,
                     relationId: attribute.relationId,
+                    type: "RESOURCE"
                   };
                 }
                 return {
@@ -223,8 +225,9 @@ export class ResourceService {
       return { success: false, error };
     }
   }
+
   async getResourceWithRelations(resource: any) {
-    const relations = resource.attributes.filter((a) => a.type === 'RESOURCE');
+    const relations = resource.attributes.filter((a: attribute) => a.type === 'RESOURCE');
     for (const relation of relations) {
       const ras = [];
       for (const ra of resource.resource_atom) {
