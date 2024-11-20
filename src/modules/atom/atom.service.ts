@@ -23,4 +23,13 @@ export class AtomService {
       };
     }
   }
+
+  async one(atomId: number) {
+    return await this.prisma.resource_atom.findUnique({
+      where: { id: atomId },
+      include: {
+        resource: true,
+      },
+    });
+  }
 }
