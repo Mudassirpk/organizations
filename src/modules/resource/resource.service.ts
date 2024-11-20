@@ -368,6 +368,12 @@ export class ResourceService {
     }
   }
 
+  async getResourceAttributes(resourceId: number) {
+    return await this.prisma.attribute.findMany({
+      where: { resourceId },
+    });
+  }
+
   async getByOrganization(
     organizationId: number,
     options: { relations?: boolean; atoms?: boolean; attributes?: boolean },

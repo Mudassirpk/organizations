@@ -43,6 +43,11 @@ export class ResourceController {
     return this.resourceService.addAttribute(body);
   }
 
+  @Get('attribute/:id')
+  getResourceAttributes(@Param('id') id: string) {
+    return this.resourceService.getResourceAttributes(+id);
+  }
+
   @UseGuards(AuthGaurd, PermissionGuard)
   @Put('attribute')
   updateAttribute(@Body() body: UpdateAttributeDTO) {
