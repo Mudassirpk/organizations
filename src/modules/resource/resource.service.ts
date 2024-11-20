@@ -162,6 +162,12 @@ export class ResourceService {
             await this.prisma.attribute.delete({
               where: { id: attribute.id },
             });
+
+            // delete all the values from atoms
+            await this.deleteResourceAttributeValues(
+              attribute.name,
+              updateDto.resourceId,
+            );
           } else {
             updated.push(
               await this.prisma.attribute.update({
@@ -199,6 +205,47 @@ export class ResourceService {
     } catch (error) {
       console.log(error);
       return { success: false, error, message: 'Internal server error' };
+    }
+  }
+
+  async deleteResourceAttributeValues(
+    name: string,
+    resourceId: number,
+    resourceAtomIds?: number[], // i we want to delete from certain atoms, if not passed values will be deleted from all the atoms
+  ) {
+    let atoms = [];
+
+    if (resourceAtomIds && resourceAtomIds.length > 0) {
+      atoms = await this.prisma.resource_atom.findMany({
+        where: {
+          id: {
+            in: resourceAtomIds,
+          },
+        },
+      });
+    }
+
+    atoms = await this.prisma.resource_atom.findMany({
+      where: {
+        resourceId,
+      },
+    });
+
+    for (const atom of atoms) {
+      const data = atom.data;
+      const new_data = {};
+      for (const key of data) {
+        if (key !== name) {
+          new_data[key] = data[key];
+        }
+      }
+
+      await this.prisma.resource_atom.update({
+        where: { id: atom.id },
+        data: {
+          data: new_data,
+        },
+      });
     }
   }
 
