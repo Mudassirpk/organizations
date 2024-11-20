@@ -10,6 +10,7 @@ import { RoleModule } from './modules/role/role.module';
 import { ResourceModule } from './modules/resource/resource.module';
 import { ConfigModule } from '@nestjs/config';
 import { ErrorService } from './shared/error/error.service';
+import { AtomModule } from './modules/atom/atom.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ErrorService } from './shared/error/error.service';
     RoleModule,
     ResourceModule,
     ConfigModule.forRoot(),
+    AtomModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, ErrorService],
