@@ -12,12 +12,14 @@ export class RoleService {
       const role = await this.prisma.role.create({
         data: {
           name: createRoleDto.roleName,
+          organizationId: createRoleDto.organizationId,
         },
       });
 
       return {
         success: true,
         role,
+        message: 'Role created successfully.',
       };
     } catch (error) {
       console.log(error);
@@ -27,10 +29,7 @@ export class RoleService {
           message: `role with same ${error.meta.target[0]} already exists`,
         };
       }
-      return {
-        success: false,
-        error,
-      };
+      return { success: false, error, message: error.message };
     }
   }
 
@@ -48,5 +47,13 @@ export class RoleService {
 
   remove(id: number) {
     return `This action removes a #${id} role`;
+  }
+
+  rolesByOrganization(organizationId: number) {
+    return this.prisma.role.findMany({
+      where: {
+        organizationId: organizationId,
+      },
+    });
   }
 }

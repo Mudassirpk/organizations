@@ -26,7 +26,7 @@ export class ResourceService {
       ).attributes;
 
       for (const value of input.values) {
-        // if new atom has a key which not defined on attributes of a resource
+        // if new atom has a key which is not defined on attributes of a resource
         if (!attributes.map((a) => a.name).includes(value.name))
           return {
             success: false,
