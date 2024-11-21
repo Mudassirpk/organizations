@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { deleteAtomDTO } from './dto/deleteAtom.dto';
 import { UpdateAtomDTO } from '../resource/dto/update-atom.dto';
+import { setAtomData } from '../../shared/utils';
 
 @Injectable()
 export class AtomService {
@@ -43,7 +44,7 @@ export class AtomService {
         },
       });
 
-      const data = {};
+      let data = {};
 
       for (const value of input.values) {
         // if new atom has a key which not defined on attributes of a resource
@@ -61,27 +62,7 @@ export class AtomService {
           (a) => a.type === 'RESOURCE',
         );
 
-        if (
-          relationNames.includes(value.name) &&
-          relations.find((r) => r.name === value.name).relationType === 'OTM'
-        ) {
-          // handle addition OTM relation field
-          if (
-            typeof value.value === 'string' &&
-            value.value.toLowerCase().trim() === 'all'
-          ) {
-            // if all atoms where selected for relation
-            data[value.name] = value.value;
-          } else if (
-            typeof value.value === 'object' &&
-            Array.isArray(value.value as any)
-          ) {
-            // if only specific atoms where selected for relation
-            data[value.name] = value.value;
-          }
-        } else {
-          data[value.name] = value.value;
-        }
+        data = setAtomData(relationNames, relations, value);
       }
 
       await this.prisma.resource_atom.update({

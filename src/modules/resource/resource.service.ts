@@ -6,6 +6,7 @@ import { AddAttributeDTO } from './dto/add-attribute.dto';
 import { CreateResourceItemDTO } from './dto/create-resource-item.dto';
 import { UpdateAttributeDTO } from './dto/update-attribute.dto';
 import { attribute } from '@prisma/client';
+import { setAtomData } from '../../shared/utils';
 
 @Injectable()
 export class ResourceService {
@@ -13,7 +14,7 @@ export class ResourceService {
 
   async create_resource_item(input: CreateResourceItemDTO) {
     try {
-      const data = {};
+      let data = {};
 
       const attributes = (
         await this.prisma.resource.findUnique({
@@ -37,28 +38,7 @@ export class ResourceService {
           .map((a) => a.name);
 
         const relations = attributes.filter((a) => a.type === 'RESOURCE');
-
-        if (
-          relationNames.includes(value.name) &&
-          relations.find((r) => r.name === value.name).relationType === 'OTM'
-        ) {
-          // handle addition OTM relation field
-          if (
-            typeof value.value === 'string' &&
-            value.value.toLowerCase().trim() === 'all'
-          ) {
-            // if all atoms where selected for relation
-            data[value.name] = value.value;
-          } else if (
-            typeof value.value === 'object' &&
-            Array.isArray(value.value as any)
-          ) {
-            // if only specific atoms where selected for relation
-            data[value.name] = value.value;
-          }
-        } else {
-          data[value.name] = value.value;
-        }
+        data = setAtomData(relationNames, relations, value);
       }
 
       const item = await this.prisma.resource_atom.create({
