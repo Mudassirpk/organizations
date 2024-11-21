@@ -28,30 +28,34 @@ export class UserService {
 
   async create(createDto: CreateUserDTO) {
     try {
-
       const password = await bcryptjs.hash(createDto.password, 10);
       const userOrgId = randomString(6);
 
+      const organization = await this.prisma.organization.create({
+        data: {
+          name: createDto.organizationName,
+          userOrgId,
+        },
+      });
+      const adminRole = await this.prisma.role.create({
+        data: {
+          name: 'ADMIN',
+          organizationId: organization.id,
+        },
+      });
       const user = await this.prisma.user.create({
         data: {
           name: createDto.name,
           email: createDto.email,
           password,
-          user_organization: {
-            create: {
-              role: {
-                create: {
-                  name: 'ADMIN',
-                },
-              },
-              organization: {
-                create: {
-                  name: createDto.organizationName,
-                  userOrgId: userOrgId,
-                },
-              },
-            },
-          },
+        },
+      });
+
+      await this.prisma.user_organization.create({
+        data: {
+          organizationId: organization.id,
+          userId: user.id,
+          roleId: adminRole.id,
         },
       });
 
@@ -121,5 +125,18 @@ export class UserService {
         error,
       };
     }
+  }
+
+  getOrganizationMembers(organizationId: number) {
+    return this.prisma.user_organization.findMany({
+      where: {
+        organizationId,
+        role: {
+          name: {
+            not: 'ADMIN',
+          },
+        },
+      },
+    });
   }
 }

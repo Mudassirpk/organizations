@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AddMemberDTO } from './dto/add-member.dto';
 import { UserId } from '../../decorators/userId.decorator';
@@ -17,5 +17,10 @@ export class UserController {
   @UseGuards(AuthGaurd)
   addMember(@Body() body: AddMemberDTO, @UserId() userId: number) {
     return this.userService.addMember(body, userId);
+  }
+
+  @Get('member/:organizationId')
+  getOrganizationMembers(@Param('organizationId') organizationId: number) {
+    return this.userService.getOrganizationMembers(organizationId);
   }
 }
