@@ -39,6 +39,7 @@ model organization {
   resources         resource[]
   userOrgId         String
   createdAt         DateTime            @default(now())
+  roles             role[]
 }
 
 // user can be member of more than one organization, one organization can have many members 
@@ -179,6 +180,8 @@ model role {
   name              String              @unique
   permission_role   permission_role[]
   user_organization user_organization[]
+  organization      organization        @relation(fields: [organizationId], references: [id])
+  organizationId    Int
 }
 
 model media {
