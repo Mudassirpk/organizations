@@ -38,7 +38,7 @@ export class ResourceService {
           .map((a) => a.name);
 
         const relations = attributes.filter((a) => a.type === 'RESOURCE');
-        data = setAtomData(relationNames, relations, value);
+        data = { ...data, ...setAtomData(relationNames, relations, value) };
       }
 
       const item = await this.prisma.resource_atom.create({

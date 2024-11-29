@@ -62,7 +62,7 @@ export class AtomService {
           (a) => a.type === 'RESOURCE',
         );
 
-        data = setAtomData(relationNames, relations, value);
+        data = { ...data, ...setAtomData(relationNames, relations, value) };
       }
 
       await this.prisma.resource_atom.update({
