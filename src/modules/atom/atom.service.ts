@@ -6,7 +6,7 @@ import { setAtomData } from '../../shared/utils';
 
 @Injectable()
 export class AtomService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async delete(input: deleteAtomDTO) {
     try {
